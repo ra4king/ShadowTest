@@ -7,7 +7,6 @@ import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
@@ -30,16 +29,6 @@ import com.ra4king.opengl.util.math.Vector4;
  */
 public class ShadowTest extends GLProgram {
 	public static void main(String[] args) {
-		if(args.length == 0) {
-			String path = ShadowTest.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-			path = path.substring(0, path.indexOf("ShadowTest.jar"));
-			path = new File(path, "libs").getAbsolutePath().replace("%20", " ");
-			System.setProperty("org.lwjgl.librarypath", path);
-		}
-		else {
-			System.setProperty("org.lwjgl.librarypath", "E:/Roi Atalla/Documents/Programming/Java/Personal Projects/Libraries/lwjgl/natives/");
-		}
-		
 		new ShadowTest().run(3, 0);
 	}
 	
