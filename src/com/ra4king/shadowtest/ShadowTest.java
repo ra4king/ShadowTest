@@ -39,7 +39,7 @@ public class ShadowTest extends GLProgram {
 	private int shadowTexture;
 	private int shadowFBO;
 	
-	private int shadowFBOwidth = 3200, shadowFBOheight = 2400;
+	private int shadowTextureWidth = 3200, shadowTextureHeight = 2400;
 	
 	private float xRot, yRot;
 	private float radius;
@@ -81,11 +81,12 @@ public class ShadowTest extends GLProgram {
 			plane = XMLMeshLoader.createMesh(getClass().getResource("plane.xml"));
 		} catch(Exception exc) {
 			exc.printStackTrace();
+			System.exit(-1);
 		}
 		
 		shadowTexture = glGenTextures();
 		glBindTexture(GL_TEXTURE_2D, shadowTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowFBOwidth, shadowFBOheight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, (ByteBuffer)null);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowTextureWidth, shadowTextureHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, (ByteBuffer)null);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -94,12 +95,14 @@ public class ShadowTest extends GLProgram {
 		
 		shadowFBO = glGenFramebuffers();
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
-		
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTexture, 0);
 		
 		int i = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		if(i != GL_FRAMEBUFFER_COMPLETE)
-			System.out.println("ERROR: " + i);
+		if(i != GL_FRAMEBUFFER_COMPLETE) {
+			System.err.println("ERROR: " + i);
+			System.exit(-1);
+		}
+		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 	
@@ -141,7 +144,7 @@ public class ShadowTest extends GLProgram {
 		
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
-			glViewport(0, 0, shadowFBOwidth, shadowFBOheight);
+			glViewport(0, 0, shadowTextureWidth, shadowTextureHeight);
 			
 			glClear(GL_DEPTH_BUFFER_BIT);
 			
