@@ -40,7 +40,7 @@ public class ShadowTest extends GLProgram {
 			System.setProperty("org.lwjgl.librarypath", "E:/Roi Atalla/Documents/Programming/Java/Personal Projects/Libraries/lwjgl/natives/");
 		}
 		
-		new ShadowTest().run(2, 1);
+		new ShadowTest().run(3, 0);
 	}
 	
 	private Shader shadowShader, shadowDummyShader;

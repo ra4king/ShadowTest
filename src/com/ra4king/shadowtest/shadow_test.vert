@@ -1,11 +1,11 @@
-#version 120
+#version 130
 
-attribute vec4 position;
-attribute vec3 norm;
+in vec4 position;
+in vec3 norm;
 
-varying vec3 cameraSpacePosition;
-varying vec3 normal;
-varying vec4 shadowPosition;
+out vec3 cameraSpacePosition;
+out vec3 normal;
+out vec4 shadowPosition;
 
 uniform mat3 normalMatrix;
 uniform mat4 projectionMatrix, viewMatrix, modelMatrix;

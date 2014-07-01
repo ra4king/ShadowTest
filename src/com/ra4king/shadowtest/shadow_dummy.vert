@@ -1,7 +1,7 @@
-#version 120
+#version 130
 
-attribute vec4 position;
-attribute vec3 norm;
+in vec4 position;
+in vec3 norm;
 
 uniform mat4 projectionMatrix, viewMatrix, modelMatrix;
 
