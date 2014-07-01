@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Class-Path: libs/lwjgl.jar libs/lwjgl_util.jar
+Main-Class: com.ra4king.shadowtest.ShadowTest
+
