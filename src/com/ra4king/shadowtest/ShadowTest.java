@@ -12,6 +12,7 @@ import java.util.HashMap;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.GLContext;
 
 import com.ra4king.opengl.util.GLProgram;
 import com.ra4king.opengl.util.Mesh;
@@ -25,7 +26,13 @@ import com.ra4king.opengl.util.math.Vector3;
 import com.ra4king.opengl.util.math.Vector4;
 
 /**
- * @author ra4king
+ * Implements shadows using shadow mapping. Shadow mapping works by mapping the depth values of all
+ * fragments from the point of view of the light source. This is done by attaching a GL_DEPTH_COMPONENT
+ * texture to an FBO, and rendering the scene using an orthographic camera and a view matrix from the point
+ * of view of the light source. The scene is then re-rendered, comparing the depth values of each fragment
+ * with the ones in the texture. If the depth is greater, then it is in a shadow, otherwise it is lit.
+ * 
+ * @author Roi Atalla
  */
 public class ShadowTest extends GLProgram {
 	public static void main(String[] args) {
@@ -39,7 +46,7 @@ public class ShadowTest extends GLProgram {
 	private int shadowTexture;
 	private int shadowFBO;
 	
-	private int shadowTextureWidth = 3200, shadowTextureHeight = 2400;
+	private int shadowTextureWidth = 1600, shadowTextureHeight = 1200;
 	
 	private float xRot, yRot;
 	private float radius;
@@ -67,7 +74,8 @@ public class ShadowTest extends GLProgram {
 		glCullFace(GL_BACK);
 		glFrontFace(GL_CW);
 		
-		glEnable(GL_DEPTH_CLAMP);
+		if(GLContext.getCapabilities().GL_ARB_depth_clamp)
+			glEnable(GL_DEPTH_CLAMP);
 		
 		HashMap<Integer,String> attribs = new HashMap<>();
 		attribs.put(0, "position");
@@ -77,6 +85,7 @@ public class ShadowTest extends GLProgram {
 		shadowDummyShader = new Shader(new ShaderProgram(readFromFile("shadow_dummy.vert"), readFromFile("shadow_dummy.frag"), attribs));
 		
 		try {
+			// Cube and plane meshes borrowed from the Arcsynthesis tutorials
 			cube = XMLMeshLoader.createMesh(getClass().getResource("cube.xml"));
 			plane = XMLMeshLoader.createMesh(getClass().getResource("plane.xml"));
 		} catch(Exception exc) {
@@ -84,6 +93,7 @@ public class ShadowTest extends GLProgram {
 			System.exit(-1);
 		}
 		
+		// Generate the texture that will contain the depth values
 		shadowTexture = glGenTextures();
 		glBindTexture(GL_TEXTURE_2D, shadowTexture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowTextureWidth, shadowTextureHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, (ByteBuffer)null);
@@ -93,6 +103,7 @@ public class ShadowTest extends GLProgram {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		
+		// Generate the FBO where the texture is attached to the depth attachment
 		shadowFBO = glGenFramebuffers();
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTexture, 0);
@@ -113,6 +124,8 @@ public class ShadowTest extends GLProgram {
 	public void update(long deltaTime) {
 		xRot += Mouse.getDX() * 0.5f;
 		yRot -= Mouse.getDY() * 0.5f;
+		
+		// Scrolling the mouse to zoom in/out
 		int dwheel = Mouse.getDWheel();
 		if(dwheel > 0)
 			radius += 0.5f;
@@ -130,20 +143,21 @@ public class ShadowTest extends GLProgram {
 				Mouse.setGrabbed(!Mouse.isGrabbed());
 				break;
 			case Keyboard.KEY_C:
-				showLightPerspective = !showLightPerspective;
+				showLightPerspective = !showLightPerspective; // See the world from the light source's perspective
 				break;
 		}
 	}
 	
 	@Override
 	public void render() {
-		final Vector4 lightDir = new Vector4(-1, -1, 0.5f, 0);
+		final Vector4 lightDir = new Vector4(-1, -1, 0.5f, 0); // Using a directional light to simulate the sun
 		
+		// The view and perspective matrices to put the camera from the perspective of the light source
 		final Matrix4 shadowViewMatrix = Utils.lookAt(new Vector3(lightDir.copy().mult(-5)), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
 		final Matrix4 shadowProjectionMatrix = new Matrix4().clearToOrtho(-5, 5, -4, 3, 1, 1000);
 		
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+			glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO); // Bind the FBO to capture depth data
 			glViewport(0, 0, shadowTextureWidth, shadowTextureHeight);
 			
 			glClear(GL_DEPTH_BUFFER_BIT);

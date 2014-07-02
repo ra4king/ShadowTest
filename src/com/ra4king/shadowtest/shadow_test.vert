@@ -13,9 +13,11 @@ uniform mat4 projectionMatrix, viewMatrix, modelMatrix;
 uniform mat4 shadowProjectionMatrix, shadowViewMatrix;
 
 void main() {
-	cameraSpacePosition = vec3(viewMatrix * modelMatrix * position);
-	gl_Position = projectionMatrix * vec4(cameraSpacePosition, 1);
+	vec4 cameraPos = viewMatrix * modelMatrix * position;
+	cameraSpacePosition = vec3(cameraPos);
+	gl_Position = projectionMatrix * cameraPos;
 	normal = mat3(viewMatrix) * normalMatrix * norm;
 	
+	// The same position generated in the dummy program is calculated to compare depth values
 	shadowPosition = shadowProjectionMatrix * shadowViewMatrix * modelMatrix * position;
 }
